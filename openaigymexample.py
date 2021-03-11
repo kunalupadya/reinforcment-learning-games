@@ -8,56 +8,62 @@ import gym
 from time import sleep
 import matplotlib.pyplot as plt
 
-ray.init(ignore_reinit_error=True)
 
-select_env = "CartPole-v1"
 
-register_env(select_env, lambda config: CartPoleEnv())
+def run_gym_game(select_env, openai_env):
+    ray.init(ignore_reinit_error=True)
 
-config = ppo.DEFAULT_CONFIG.copy()
-config["log_level"] = "WARN"
-agent = ppo.PPOTrainer(config, env=select_env)
 
-status = "{:2d} reward {:6.2f}/{:6.2f}/{:6.2f} len {:4.2f}"
+    register_env(select_env, lambda config: openai_env)
 
-n_iter = 5
+    config = ppo.DEFAULT_CONFIG.copy()
+    config["log_level"] = "WARN"
+    agent = ppo.PPOTrainer(config, env=select_env)
 
-for n in range(n_iter):
-    result = agent.train()
-    # chkpt_file = agent.save(chkpt_root)
+    status = "{:2d} reward {:6.2f}/{:6.2f}/{:6.2f} len {:4.2f}"
 
-    print(status.format(
-        n + 1,
-        result["episode_reward_min"],
-        result["episode_reward_mean"],
-        result["episode_reward_max"],
-        result["episode_len_mean"]
-        # chkpt_file
-    ))
+    n_iter = 5
 
-policy = agent.get_policy()
-model = policy.model
-print(model.base_model.summary())
+    for n in range(n_iter):
+        result = agent.train()
+        # chkpt_file = agent.save(chkpt_root)
 
-# apply the trained policy in a rollout
-env = gym.make(select_env)
-print("45")
-state = env.reset()
-sum_reward = 0
-n_step = 1000
+        print(status.format(
+            n + 1,
+            result["episode_reward_min"],
+            result["episode_reward_mean"],
+            result["episode_reward_max"],
+            result["episode_len_mean"]
+            # chkpt_file
+        ))
 
-for step in range(n_step):
-    # time.time
-    action = agent.compute_action(state)
-    state, reward, done, info = env.step(action)
-    sum_reward += reward
+    policy = agent.get_policy()
+    model = policy.model
+    print(model.base_model.summary())
 
-    sleep(0.250)
-    rgb = env.render(mode="rgb_array")
-    plt.imshow(rgb)
-    plt.show()
-    if done == 1:
-        # report at the end of each episode
-        print("cumulative reward", sum_reward)
-        state = env.reset()
-        sum_reward = 0
+    # apply the trained policy in a rollout
+    env = gym.make(select_env)
+    print("45")
+    state = env.reset()
+    sum_reward = 0
+    n_step = 1000
+
+    for step in range(n_step):
+        # time.time
+        action = agent.compute_action(state)
+        state, reward, done, info = env.step(action)
+        sum_reward += reward
+
+        sleep(0.250)
+        rgb = env.render(mode="rgb_array")
+        plt.imshow(rgb)
+        plt.show()
+        if done == 1:
+            # report at the end of each episode
+            print("cumulative reward", sum_reward)
+            state = env.reset()
+            sum_reward = 0
+
+if __name__ == "__main__":
+    select_env = "CartPole-v1"
+    run_gym_game(select_env, CartPoleEnv())
