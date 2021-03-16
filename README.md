@@ -1,8 +1,7 @@
 # reinforcment-learning-games
 brew update
-brew install cmake pkg-config automake autoconf libtool boost wget
 
-pip install numpy cloudpickle funcsigs click colorama psutil redis flatbuffers cython --ignore-installed six
+brew install cmake pkg-config automake autoconf libtool boost wget
 
 pip3 install virtualenv
 
