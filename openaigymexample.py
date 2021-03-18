@@ -1,6 +1,5 @@
 # adapted from https://github.com/DerwenAI/gym_example/blob/master/train.py
 
-from gym.envs.classic_control import CartPoleEnv
 import ray
 from ray.tune.registry import register_env
 import ray.rllib.agents.ppo as ppo
@@ -46,6 +45,7 @@ def run_gym_game(select_env, openai_env, n_iter = 5):
     sum_reward = 0
     n_step = 1000
 
+    rgbs = []
     for step in range(n_step):
         # time.time
         action = agent.compute_action(state)
@@ -61,7 +61,9 @@ def run_gym_game(select_env, openai_env, n_iter = 5):
             print("cumulative reward", sum_reward)
             state = env.reset()
             sum_reward = 0
+    return rgbs, agent
 
 if __name__ == "__main__":
+    from gym.envs.classic_control import CartPoleEnv
     select_env = "CartPole-v1"
     run_gym_game(select_env, CartPoleEnv())
