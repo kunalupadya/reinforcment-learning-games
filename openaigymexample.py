@@ -10,7 +10,7 @@ import matplotlib.pyplot as plt
 
 
 
-def run_gym_game(select_env, openai_env):
+def run_gym_game(select_env, openai_env, n_iter = 5):
     ray.init(ignore_reinit_error=True)
 
 
@@ -21,8 +21,6 @@ def run_gym_game(select_env, openai_env):
     agent = ppo.PPOTrainer(config, env=select_env)
 
     status = "{:2d} reward {:6.2f}/{:6.2f}/{:6.2f} len {:4.2f}"
-
-    n_iter = 5
 
     for n in range(n_iter):
         result = agent.train()
@@ -56,8 +54,8 @@ def run_gym_game(select_env, openai_env):
 
         sleep(0.250)
         rgb = env.render(mode="rgb_array")
-        plt.imshow(rgb)
-        plt.show()
+        #plt.imshow(rgb)
+        #plt.show()
         if done == 1:
             # report at the end of each episode
             print("cumulative reward", sum_reward)
