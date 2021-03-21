@@ -10,6 +10,7 @@ layout = [[sg.Text('Welcome to the RFFL, where we want to make reinforcement lea
           [sg.Radio('Catcher', "GAMES", key="Catcher")],
           [sg.Radio('CartPole', "GAMES", key="CartPole")],
           [sg.Radio('MountainCar', "GAMES", key="MountainCar")],
+          [sg.Radio('SpaceInvaders', "GAMES", key="SpaceInvaders")],
           [sg.Radio('Pong', "GAMES", key="Pong")],
           [sg.Button('Display'), sg.Button('Exit')]] 
   
@@ -58,6 +59,8 @@ def open_game(values, iterations):
     GameInst.run_cartpole(iterations)
   elif values['MountainCar']:
   	GameInst.run_mountain_car(iterations)
+  elif values['SpaceInvaders']:
+    GameInst.run_space_invaders(iterations)
   elif values['Pong']:
   	GameInst.run_pong(iterations)
 
