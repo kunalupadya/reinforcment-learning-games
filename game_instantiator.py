@@ -1,6 +1,7 @@
-from openaigymexample import run_gym_game, init_gym_game
+from openaigymexample import run_gym_game, init_gym_game, restore_saved_agent
 from gym.envs.classic_control import CartPoleEnv, MountainCarEnv
 from gym.envs.atari import AtariEnv
+import os
 
 
 class GameInstantiator():
@@ -9,6 +10,9 @@ class GameInstantiator():
 
     def run_cartpole(self, n_iter = 5):
         return self.game_call("CartPole-v1", CartPoleEnv(), n_iter)
+
+    def restore_cartpole(self, n_iter):
+        return restore_saved_agent("CartPole-v1", CartPoleEnv(), os.getcwd() + '/CartPole/checkpoint_' + str(n_iter) + '/checkpoint-' + str(n_iter))
 
     def run_pong(self, n_iter = 5):
         return self.game_call("Pong-v0", AtariEnv(game="pong"), n_iter)

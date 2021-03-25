@@ -65,7 +65,8 @@ def open_game(values, iterations):
   elif values['Catcher']:
     open_catcher(iterations)
   elif values['CartPole']:
-    env, agent = GameInst.run_cartpole(iterations)
+    getAgent = GameInst.restore_cartpole if iterations % 1 == 0 else GameInst.run_cartpole
+    env, agent = getAgent(iterations)
   elif values['MountainCar']:
     GameInst.run_mountain_car(iterations)
   elif values['SpaceInvaders']:
