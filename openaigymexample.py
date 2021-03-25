@@ -8,8 +8,7 @@ from time import sleep
 import matplotlib.pyplot as plt
 
 
-
-def run_gym_game(select_env, openai_env, n_iter = 5):
+def init_gym_game(select_env, openai_env, n_iter = 5):
     ray.init(ignore_reinit_error=True)
 
 
@@ -40,6 +39,12 @@ def run_gym_game(select_env, openai_env, n_iter = 5):
 
     # apply the trained policy in a rollout
     env = gym.make(select_env)
+
+    return env, agent
+
+
+def run_gym_game(select_env, openai_env, n_iter = 5):
+    env, agent = init_gym_game(select_env, openai_env, n_iter)
     print("45")
     state = env.reset()
     sum_reward = 0

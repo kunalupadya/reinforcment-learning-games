@@ -1,5 +1,9 @@
-import PySimpleGUI as sg 
-from game_instantiator import GameInstantiator
+import PySimpleGUI as sg
+from matplotlib import pyplot as plt
+from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
+import matplotlib
+matplotlib.use('TkAgg')
+
 
 sg.theme('SystemDefaultForReal') 
 
@@ -15,7 +19,7 @@ layout = [[sg.Text('Welcome to the RFFL, where we want to make reinforcement lea
           [sg.Button('Display'), sg.Button('Exit')]] 
   
 window = sg.Window('Welcome', layout) 
-  
+
 def open_pixelCopter(iterations):
   # TODO
   print('Not implimented')
@@ -50,25 +54,74 @@ def open_catcher(iterations):
   # sg.popup_animated(None)
 
 def open_game(values, iterations):
+  from game_instantiator import GameInstantiator
+
+  env = None 
+  agent = None
+
   GameInst = GameInstantiator()
   if values['PixelCopter']:
     open_pixelCopter(iterations)
   elif values['Catcher']:
     open_catcher(iterations)
   elif values['CartPole']:
-    GameInst.run_cartpole(iterations)
+    env, agent = GameInst.run_cartpole(iterations)
   elif values['MountainCar']:
-  	GameInst.run_mountain_car(iterations)
+    GameInst.run_mountain_car(iterations)
   elif values['SpaceInvaders']:
     GameInst.run_space_invaders(iterations)
   elif values['Pong']:
-  	GameInst.run_pong(iterations)
+    GameInst.run_pong(iterations)
+
+  return env, agent
+
+def draw_figure(canvas, figure):
+  figure_canvas_agg = FigureCanvasTkAgg(figure, canvas)
+  figure_canvas_agg.draw()
+  figure_canvas_agg.get_tk_widget().pack(side='top', fill='both', expand=1)
+  return figure_canvas_agg
+
+def animate_game(env, agent, window3):
+  # fig = plt.figure()
+  # plt.clf()
+
+  # layout = [[sg.Text('Plot test')],
+  #         [sg.Canvas(key='-CANVAS-')],
+  #         [sg.Button('Ok')]]
+
+  # window3 = sg.Window('Demo Application - Embedding Matplotlib In PySimpleGUI', layout, finalize=True, element_justification='center', font='Helvetica 18')
+  # fig_canvas_agg = draw_figure(window3['-CANVAS-'].TKCanvas, fig)
+
+  state = env.reset()
+  sum_reward = 0
+  n_step = 1000
+
+  for step in range(n_step):
+    event, values = window3.read(timeout = 0)
+    print(event, values)
+    if event is None or 'Exit' in event:
+      break
+    action = agent.compute_action(state)
+    state, reward, done, info = env.step(action)
+    sum_reward += reward
+
+    plt.imshow(env.render(mode="rgb_array"))
+    if done == 1:
+      print("cumulative reward", sum_reward)
+      state = env.reset()
+      sum_reward = 0
+
+  window3.close()
+
+
 
 def open_game_menu(prior_values):
+  env = None
+  agent = None
   show_iters = False
   layout = [[sg.Text('How many iterations would you like to view?')],
-  			[sg.Radio('100', "ITER", key='100'), sg.Radio('200', "ITER", key='200'), sg.Radio('300', "ITER", key='300'), sg.Radio('Let me train my own model!', "ITER", key='train')] ,
-          [sg.pin(sg.Column([[sg.Text('How many iterations would you like to train?'), sg.Spin([i * 5 for i in range(1,11)], key='iterations')]], key='train_opt', visible=show_iters))],
+            [sg.Radio('100', "ITER", key='100'), sg.Radio('200', "ITER", key='200'), sg.Radio('300', "ITER", key='300'), sg.Radio('Let me train my own model!', "ITER", key='train')] ,
+          [sg.pin(sg.Column([[sg.Text('How many iterations would you like to train?'), sg.Spin([i for i in range(1,11)], key='iterations')]], key='train_opt', visible=show_iters))],
           [sg.Button('Next'), sg.Button('Exit')]] 
   window2 = sg.Window('Game Options', layout, modal=True)
 
@@ -76,18 +129,20 @@ def open_game_menu(prior_values):
     event, values = window2.read() 
     print(event, values) 
       
+    if event == 'Next':
+        if values['train'] and not show_iters:
+            show_iters = True
+            window2['train_opt'].update(visible=show_iters)
+        else:
+            n_iter = int(values['iterations']) if values['train'] else [x for x in range(100, 400, 100) if values[str(x)]][0] # Sorry for what I've done
+            env, agent = open_game(prior_values, n_iter)
+
+    if env != agent:
+      animate_game(env, agent, window2)
+
     if event is None or 'Exit' in event: 
         print(event)
         break
-      
-    if event == 'Next':
-    	if values['train'] and not show_iters:
-    		show_iters = True
-    		window2['train_opt'].update(visible=show_iters)
-    	else:
-            n_iter = int(values['iterations']) if values['train'] else [x for x in range(100, 400, 100) if values[str(x)]][0] # Sorry for what I've done
-            open_game(prior_values, n_iter)
-
   window2.close()
 
 while True: 
