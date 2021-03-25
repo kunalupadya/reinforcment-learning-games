@@ -40,7 +40,7 @@ def init_gym_game(select_env, openai_env, n_iter = 5):
     env = gym.make(select_env)
     return env, agent
 
-def run_gym_game(select_env, openai_env, checkpoint_path, n_iter = 5):
+def run_gym_game(select_env, openai_env, n_iter = 5):
     env, agent = init_gym_game(select_env, openai_env, n_iter)
     print("45")
     state = env.reset()
