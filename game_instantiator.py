@@ -22,6 +22,10 @@ class GameInstantiator():
 
     def run_mountain_car(self, n_iter = 5, algorithm = 'PPO'):
         return self.game_call("MountainCar-v0", MountainCarEnv(), n_iter, algorithm)
+
+    def run_lunar_lander(self, n_iter = 5, algorithm = 'PPO'):
+        return self.game_call("LunarLander-v2", None, n_iter, algorithm)
+
 if __name__ == "__main__":
     g = GameInstantiator(True)
     g.run_space_invaders(5)
