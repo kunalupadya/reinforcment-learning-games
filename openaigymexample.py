@@ -97,7 +97,7 @@ if __name__ == "__main__":
     if len(sys.argv) > 1 and sys.argv[1] == 'CartPole':
         from gym.envs.classic_control import CartPoleEnv
         algorithm = 'PPO' if len(sys.argv) > 1 else sys.argv[2]
-        checkpoint_path = os.getcwd() + '/' + sys.argv[1] if len(sys.argv) > 2 else sys.argv[3]
+        checkpoint_path = os.getcwd() + '/' + sys.argv[1] + '/' + algorithm if len(sys.argv) > 2 else sys.argv[3]
         gen_saved_agents("CartPole-v1", CartPoleEnv(), checkpoint_path, algorithm)
     else:
         from gym.envs.classic_control import CartPoleEnv
