@@ -3,11 +3,18 @@
 import ray
 from ray.tune.registry import register_env
 import ray.rllib.agents.ppo as ppo
+import ray.rllib.agents.dqn as dqn
 import gym
 from time import sleep
 import matplotlib.pyplot as plt
 import sys
 import os
+
+def get_trainer(algorithm):
+    if algorithm == 'PPO':
+        return ppo, ppo.PPOTrainer
+    elif algorithm == 'DQN':
+        return dqn, dqn.DQNTrainer
 
 def train_gym_game(agent, n_iter):
     status = "{:2d} reward {:6.2f}/{:6.2f}/{:6.2f} len {:4.2f}"
@@ -29,13 +36,15 @@ def train_gym_game(agent, n_iter):
     print(model.base_model.summary())
     return agent
 
-def init_gym_game(select_env, openai_env, n_iter = 5):
+def init_gym_game(select_env, openai_env, n_iter = 5, algorithm = 'PPO'):
     ray.init(ignore_reinit_error=True)
-    register_env(select_env, lambda config: openai_env)
+    register_env(select_env, lambda config: gym.make(select_env))
 
-    config = ppo.DEFAULT_CONFIG.copy()
+    algo, trainer = get_trainer(algorithm)
+
+    config = algo.DEFAULT_CONFIG.copy()
     config["log_level"] = "WARN"
-    agent = train_gym_game(ppo.PPOTrainer(config, env=select_env), n_iter)
+    agent = train_gym_game(trainer(config, env=select_env), n_iter)
     # apply the trained policy in a rollout
     env = gym.make(select_env)
     return env, agent
@@ -65,19 +74,20 @@ def run_gym_game(select_env, openai_env, n_iter = 5):
             sum_reward = 0
     return rgbs, agent
 
-def gen_saved_agents(select_env, openai_env, checkpoint_path):
-    env, agent = init_gym_game(select_env, openai_env, 0)
+def gen_saved_agents(select_env, openai_env, checkpoint_path, algorithm):
+    env, agent = init_gym_game(select_env, openai_env, 0, algorithm)
     for i in range(3):
-        agent = train_gym_game(agent, 1)
+        agent = train_gym_game(agent, 100)
         agent.save(checkpoint_path)
 
-def restore_saved_agent(select_env, openai_env, checkpoint_path):
+def restore_saved_agent(select_env, openai_env, checkpoint_path, algorithm):
     ray.init(ignore_reinit_error=True)
     register_env(select_env, lambda config: openai_env)
 
-    config = ppo.DEFAULT_CONFIG.copy()
+    algo, trainer = get_trainer(algorithm)
+    config = algo.DEFAULT_CONFIG.copy()
     config["num_workers"] = 0
-    agent = ppo.PPOTrainer(config, env=select_env)
+    agent = trainer(config, env=select_env)
     agent.restore(checkpoint_path)
     # apply the trained policy in a rollout
     env = gym.make(select_env)
@@ -86,8 +96,9 @@ def restore_saved_agent(select_env, openai_env, checkpoint_path):
 if __name__ == "__main__":
     if len(sys.argv) > 1 and sys.argv[1] == 'CartPole':
         from gym.envs.classic_control import CartPoleEnv
-        checkpoint_path = os.getcwd() + '/' + sys.argv[1] if len(sys.argv) == 2 else sys.argv[2]
-        gen_saved_agents("CartPole-v1", CartPoleEnv(), checkpoint_path)
+        algorithm = 'PPO' if len(sys.argv) > 1 else sys.argv[2]
+        checkpoint_path = os.getcwd() + '/' + sys.argv[1] + '/' + algorithm if len(sys.argv) > 2 else sys.argv[3]
+        gen_saved_agents("CartPole-v1", CartPoleEnv(), checkpoint_path, algorithm)
     else:
         from gym.envs.classic_control import CartPoleEnv
         select_env = "CartPole-v1"

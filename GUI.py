@@ -1,9 +1,11 @@
 import PySimpleGUI as sg
+import webbrowser
 from matplotlib import pyplot as plt
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 import matplotlib
 matplotlib.use('TkAgg')
 
+algorithms = ['PPO', 'DQN']
 
 sg.theme('SystemDefaultForReal') 
 
@@ -53,7 +55,7 @@ def open_catcher(iterations):
   #   sg.popup_animated(animation, time_between_frames=60)
   # sg.popup_animated(None)
 
-def open_game(values, iterations):
+def open_game(values, iterations, algorithm):
   from game_instantiator import GameInstantiator
 
   env = None 
@@ -65,14 +67,14 @@ def open_game(values, iterations):
   elif values['Catcher']:
     open_catcher(iterations)
   elif values['CartPole']:
-    getAgent = GameInst.restore_cartpole if iterations % 1 == 0 else GameInst.run_cartpole
-    env, agent = getAgent(iterations)
+    getAgent = GameInst.restore_cartpole if iterations % 100 == 0 else GameInst.run_cartpole
+    env, agent = getAgent(iterations, algorithm)
   elif values['MountainCar']:
-    GameInst.run_mountain_car(iterations)
+    GameInst.run_mountain_car(iterations, algorithm)
   elif values['SpaceInvaders']:
-    GameInst.run_space_invaders(iterations)
+    GameInst.run_space_invaders(iterations, algorithm)
   elif values['Pong']:
-    GameInst.run_pong(iterations)
+    GameInst.run_pong(iterations, algorithm)
 
   return env, agent
 
@@ -120,29 +122,43 @@ def open_game_menu(prior_values):
   env = None
   agent = None
   show_iters = False
-  layout = [[sg.Text('How many iterations would you like to view?')],
+  show_learn_more = False
+  layout = [[sg.Text('Which algorithm would you like to train?')],
+            [sg.Radio(algo, "ALGO", key=algo, enable_events=True) for algo in algorithms] ,
+            [sg.Text('How many iterations would you like to view?')],
             [sg.Radio('100', "ITER", key='100'), sg.Radio('200', "ITER", key='200'), sg.Radio('300', "ITER", key='300'), sg.Radio('Let me train my own model!', "ITER", key='train')] ,
           [sg.pin(sg.Column([[sg.Text('How many iterations would you like to train?'), sg.Spin([i for i in range(1,11)], key='iterations')]], key='train_opt', visible=show_iters))],
-          [sg.Button('Next'), sg.Button('Exit')]] 
+          [sg.Button('Next'), sg.Button('Exit'), sg.Button('Learn About This Algorithm', key = 'learn_more', visible=show_learn_more)]] 
   window2 = sg.Window('Game Options', layout, modal=True)
 
   while True:
     event, values = window2.read() 
     print(event, values) 
-      
+    
+    if event in algorithms and not show_learn_more:
+        show_learn_more = True
+        window2['learn_more'].update(visible=show_learn_more)
+    if event == 'learn_more':
+        algorithm = [x for x in algorithms if values[str(x)]][0]
+        if algorithm == 'PPO':
+            webbrowser.open('https://arxiv.org/abs/1707.06347')
+        elif algorithm == 'DQN':
+            webbrowser.open('https://arxiv.org/abs/1312.5602')
+
+
     if event == 'Next':
         if values['train'] and not show_iters:
             show_iters = True
             window2['train_opt'].update(visible=show_iters)
         else:
             n_iter = int(values['iterations']) if values['train'] else [x for x in range(100, 400, 100) if values[str(x)]][0] # Sorry for what I've done
-            env, agent = open_game(prior_values, n_iter)
+            algorithm = [x for x in algorithms if values[str(x)]][0]
+            env, agent = open_game(prior_values, n_iter, algorithm)
 
     if env != agent:
       animate_game(env, agent, window2)
 
     if event is None or 'Exit' in event: 
-        print(event)
         break
   window2.close()
 
