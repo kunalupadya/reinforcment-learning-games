@@ -13,6 +13,8 @@ class GameInstantiator():
 
     def restore_cartpole(self, n_iter):
         return restore_saved_agent("CartPole-v1", CartPoleEnv(), os.getcwd() + '/CartPole/checkpoint_' + str(n_iter) + '/checkpoint-' + str(n_iter))
+    def restore_cartpole(self, n_iter, algorithm = 'PPO'):
+        return restore_saved_agent("CartPole-v1", CartPoleEnv(), os.getcwd() + '/CartPole/' + algorithm + '/checkpoint_' + str(n_iter) + '/checkpoint-' + str(n_iter), algorithm)
 
     def run_pong(self, n_iter = 5):
         return self.game_call("Pong-v0", AtariEnv(game="pong"), n_iter)

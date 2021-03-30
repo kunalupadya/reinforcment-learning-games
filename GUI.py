@@ -67,6 +67,7 @@ def open_game(values, iterations):
   elif values['CartPole']:
     getAgent = GameInst.restore_cartpole if iterations % 1 == 0 else GameInst.run_cartpole
     env, agent = getAgent(iterations)
+    getAgent = GameInst.restore_cartpole if iterations % 100 == 0 else GameInst.run_cartpole
   elif values['MountainCar']:
     GameInst.run_mountain_car(iterations)
   elif values['SpaceInvaders']:
