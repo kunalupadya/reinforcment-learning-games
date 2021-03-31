@@ -77,7 +77,8 @@ def open_game(values, iterations, algorithm):
   # elif values['Pong']:
   #   GameInst.run_pong(iterations, algorithm)
   elif values['LunarLander']:
-    env, agent = GameInst.run_lunar_lander(iterations, algorithm)
+    getAgent = GameInst.restore_lunar_lander if iterations % 100 == 0 else GameInst.run_lunar_lander
+    env, agent = getAgent(iterations, algorithm)
 
   return env, agent
 

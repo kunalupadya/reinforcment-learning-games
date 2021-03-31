@@ -26,6 +26,9 @@ class GameInstantiator():
     def run_lunar_lander(self, n_iter = 5, algorithm = 'PPO'):
         return self.game_call("LunarLander-v2", None, n_iter, algorithm)
 
+    def restore_lunar_lander(self, n_iter, algorithm = 'PPO'):
+        return restore_saved_agent("LunarLander-v2", None, os.getcwd() + '/LunarLander/' + algorithm + '/checkpoint_' + str(n_iter) + '/checkpoint-' + str(n_iter), algorithm)
+
 if __name__ == "__main__":
     g = GameInstantiator(True)
     g.run_space_invaders(5)
