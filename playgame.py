@@ -7,6 +7,8 @@ from ray import tune
 from ray.rllib.agents.impala import ImpalaTrainer
 
 ## Code from https://www.codeproject.com/Articles/5271948/Learning-Breakout-More-Quickly
+## Playing the game manually
+
 def callback(ob_t, obs_tp1, action, rew, done, info):
     return [rew]
 
@@ -33,31 +35,33 @@ def makePlayWindow():
             runCartPole()
     window.close()
 
-#if __name__ == "__main__":
-#    makePlayWindow()
+if __name__ == "__main__":
+    makePlayWindow()
 
-ray.shutdown()
+
+## Ignore the code below
+#ray.shutdown()
 #ray.init(include_webui=False, ignore_reinit_error=True)
-ray.init()
+#ray.init()
 #
-ENV = "Breakout-ramNoFrameskip-v4"
-TARGET_REWARD = 200
-TRAINER = ImpalaTrainer
+#ENV = "Breakout-ramNoFrameskip-v4"
+#TARGET_REWARD = 200
+#TRAINER = ImpalaTrainer
 #
-tune.run(TRAINER, stop={"episode_reward_mean": TARGET_REWARD},
-         config={"env": ENV,
-                 "monitor": True,
-                 "evaluation_num_episodes": 25,
-                 "rollout_fragment_length": 50,
-                 "train_batch_size": 500,
-                 "num_workers": 1,
-                 "num_envs_per_worker": 2,
-                 "clip_rewards": True,
-                 "lr_schedule": [
-                     [0, 0.0005],
-                     [20_000_000, 0.000000000001]
-                 ]})
-print("Finished training")
+#tune.run(TRAINER, stop={"episode_reward_mean": TARGET_REWARD},
+#         config={"env": ENV,
+#                 "monitor": True,
+#                 "evaluation_num_episodes": 25,
+#                 "rollout_fragment_length": 50,
+#                 "train_batch_size": 500,
+#                 "num_workers": 1,
+#                 "num_envs_per_worker": 2,
+#                 "clip_rewards": True,
+#                 "lr_schedule": [
+#                     [0, 0.0005],
+#                     [20_000_000, 0.000000000001]
+#                 ]})
+#print("Finished training")
 
 
 
