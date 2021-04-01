@@ -6,7 +6,13 @@ import os
 
 class GameInstantiator():
     def __init__(self, testing = False):
-        self.game_call = run_gym_game if testing else init_gym_game
+        self.testing = testing
+
+    def game_call(self, select_env, openai_env, n_iter, algorithm, atari = False):
+        if self.testing:
+            return run_gym_game(select_env, openai_env, n_iter, atari)
+        else:
+            return init_gym_game(select_env, openai_env, n_iter, algorithm, atari)
 
     def run_cartpole(self, n_iter = 5, algorithm = 'PPO'):
         return self.game_call("CartPole-v1", CartPoleEnv(), n_iter, algorithm)
