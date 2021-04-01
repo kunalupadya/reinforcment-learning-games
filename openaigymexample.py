@@ -82,7 +82,7 @@ def gen_saved_agents(select_env, openai_env, checkpoint_path, algorithm):
 
 def restore_saved_agent(select_env, openai_env, checkpoint_path, algorithm):
     ray.init(ignore_reinit_error=True)
-    register_env(select_env, lambda config: openai_env)
+    register_env(select_env, lambda config: gym.make(select_env))
 
     algo, trainer = get_trainer(algorithm)
     config = algo.DEFAULT_CONFIG.copy()
@@ -99,6 +99,11 @@ if __name__ == "__main__":
         algorithm = 'PPO' if len(sys.argv) > 1 else sys.argv[2]
         checkpoint_path = os.getcwd() + '/' + sys.argv[1] + '/' + algorithm if len(sys.argv) > 2 else sys.argv[3]
         gen_saved_agents("CartPole-v1", CartPoleEnv(), checkpoint_path, algorithm)
+    if len(sys.argv) > 1 and sys.argv[1] == 'LunarLander':
+        algorithm = 'PPO' if len(sys.argv) == 1 else sys.argv[2]
+        checkpoint_path = os.getcwd() + '/' + sys.argv[1] + '/' + algorithm if len(sys.argv) > 2 else sys.argv[3]
+        print(checkpoint_path)
+        gen_saved_agents("LunarLander-v2", None, checkpoint_path, algorithm)
     else:
         from gym.envs.classic_control import CartPoleEnv
         select_env = "CartPole-v1"
