@@ -11,11 +11,12 @@ class GameInstantiator():
         return run_gym_game("Pong-v0", AtariEnv(game="pong"), n_iter)
 
     def run_space_invaders(self, n_iter = 5):
-        return run_gym_game("SpaceInvaders-v0", AtariEnv(game="space_invaders"), n_iter)
+        return run_gym_game("BreakoutNoFrameskip-v4", AtariEnv(game="space_invaders"), n_iter)
 
     def run_mountain_car(self, n_iter = 5):
         return run_gym_game("MountainCar-v0", MountainCarEnv(), n_iter)
 if __name__ == "__main__":
     g = GameInstantiator()
-    g.run_space_invaders(5)
+    g.run_space_invaders(1)
+    # g.run_pong()
     # g.run_mountain_car()

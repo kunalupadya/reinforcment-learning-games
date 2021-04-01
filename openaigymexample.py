@@ -3,21 +3,31 @@
 import ray
 from ray.tune.registry import register_env
 import ray.rllib.agents.ppo as ppo
+
+import ray.rllib.agents.dqn as dqn
 import gym
 from time import sleep
 import matplotlib.pyplot as plt
+from gym.utils.play import play, PlayPlot
+from ray import tune
+from ray.rllib.models.preprocessors import get_preprocessor, GenericPixelPreprocessor
+import numpy as np
 
 
 
-def run_gym_game(select_env, openai_env, n_iter = 5):
+def run_gym_game(select_env, openai_env, n_iter = 5, atari=False):
     ray.init(ignore_reinit_error=True)
 
 
-    register_env(select_env, lambda config: openai_env)
+    register_env(select_env, lambda config: gym.make(select_env))
 
     config = ppo.DEFAULT_CONFIG.copy()
     config["log_level"] = "WARN"
     agent = ppo.PPOTrainer(config, env=select_env)
+
+    # config = dqn.DEFAULT_CONFIG.copy()
+    # config["log_level"] = "WARN"
+    # agent = dqn.DQNTrainer(config, env=select_env)
 
     status = "{:2d} reward {:6.2f}/{:6.2f}/{:6.2f} len {:4.2f}"
 
@@ -46,14 +56,20 @@ def run_gym_game(select_env, openai_env, n_iter = 5):
     n_step = 1000
 
     rgbs = []
+    prep = get_preprocessor(env.observation_space)(env.observation_space)
+
+    globals().update(locals())
     for step in range(n_step):
         # time.time
-        action = agent.compute_action(state)
+        if atari:
+            action = agent.compute_action(np.mean(prep.transform(state), 2))
+        else:
+            action = agent.compute_action(prep.transform(state))
         state, reward, done, info = env.step(action)
         sum_reward += reward
 
-        sleep(0.250)
-        rgb = env.render(mode="rgb_array")
+        env.render()
+        # rgb = env.render(mode="rgb_array")
         #plt.imshow(rgb)
         #plt.show()
         if done == 1:
@@ -64,6 +80,7 @@ def run_gym_game(select_env, openai_env, n_iter = 5):
     return rgbs, agent
 
 if __name__ == "__main__":
-    from gym.envs.classic_control import CartPoleEnv
-    select_env = "CartPole-v1"
-    run_gym_game(select_env, CartPoleEnv())
+    # from gym.envs.classic_control import CartPoleEnv
+    # select_env = "CartPole-v1"
+    # run_gym_game(select_env, CartPoleEnv())
+    run_gym_game("BreakoutNoFrameskip-v4", None, 1, True)
