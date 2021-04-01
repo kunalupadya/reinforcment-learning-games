@@ -41,7 +41,7 @@ def train_gym_game(agent, n_iter):
     print(model.base_model.summary())
     return agent
 
-def init_gym_game(select_env, openai_env, n_iter = 5, algorithm = 'PPO'):
+def init_gym_game(select_env, openai_env, n_iter = 5, algorithm = 'PPO', atari = False):
     ray.init(ignore_reinit_error=True)
     register_env(select_env, lambda config: gym.make(select_env))
 

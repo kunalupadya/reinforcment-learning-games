@@ -14,11 +14,11 @@ class GameInstantiator():
     def restore_cartpole(self, n_iter, algorithm = 'PPO'):
         return restore_saved_agent("CartPole-v1", CartPoleEnv(), os.getcwd() + '/CartPole/' + algorithm + '/checkpoint_' + str(n_iter) + '/checkpoint-' + str(n_iter), algorithm)
 
-    def run_pong(self, n_iter = 5, algorithm = 'PPO', atari = True):
-        return self.game_call("Pong-v0", AtariEnv(game="pong"), n_iter, algorithm)
+    def run_pong(self, n_iter = 5, algorithm = 'PPO'):
+        return self.game_call("Pong-v0", AtariEnv(game="pong"), n_iter, algorithm, atari = True)
 
     def run_space_invaders(self, n_iter = 5, algorithm = 'PPO', atari = True):
-        return self.game_call("SpaceInvaders-v0", AtariEnv(game="space_invaders"), n_iter, algorithm)
+        return self.game_call("SpaceInvaders-v0", AtariEnv(game="space_invaders"), n_iter, algorithm, atari = True)
 
     def run_mountain_car(self, n_iter = 5, algorithm = 'PPO'):
         return self.game_call("MountainCar-v0", MountainCarEnv(), n_iter, algorithm)
@@ -32,5 +32,5 @@ class GameInstantiator():
 if __name__ == "__main__":
 
     g = GameInstantiator(True)
-    g.run_space_invaders(5)
+    g.run_space_invaders(1)
     # g.run_mountain_car()
