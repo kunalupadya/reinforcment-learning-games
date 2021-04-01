@@ -127,3 +127,11 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
+
+# For Austin
+venv
+testing.py
+.idea
+
+# Annoying
+.DS_Store
