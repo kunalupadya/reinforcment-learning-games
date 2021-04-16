@@ -114,7 +114,7 @@ def restore_saved_agent(select_env, openai_env, checkpoint_path, algorithm):
 
 if __name__ == "__main__":
     if TRAIN_LOCAL == True:
-        checkpoint_path = os.getcwd() + '/' + SELECT_ENV.split('-')[0] + '/' + ALGORITHM
+        checkpoint_path = os.getcwd() + '/' + SELECT_ENV + '/' + ALGORITHM
         print(checkpoint_path)
         gen_saved_agents(SELECT_ENV, None, checkpoint_path, ALGORITHM)
     elif len(sys.argv) > 1 and sys.argv[1] == 'CartPole':
