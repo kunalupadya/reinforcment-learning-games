@@ -4,11 +4,21 @@ from matplotlib import pyplot as plt
 import glob
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 import matplotlib
+from ray.rllib.models.preprocessors import get_preprocessor
+from game_instantiator import GameInstantiator, NON_ATARI
+import numpy as np
+
 matplotlib.use('TkAgg')
+
+sg.SetOptions(
+                 button_color = sg.COLOR_SYSTEM_DEFAULT
+               , text_color = sg.COLOR_SYSTEM_DEFAULT
+             )
 
 algorithms = ['PPO', 'DQN']
 
 games = [x[:-1] for x in glob.glob('*-*/')]
+
 
 sg.theme('SystemDefaultForReal')
 
@@ -19,7 +29,6 @@ layout.append([sg.Button('Display'), sg.Button('Exit')])
 window = sg.Window('Welcome', layout)
 
 def open_game(chosen_game, iterations, algorithm):
-    from game_instantiator import GameInstantiator
 
     env = None
     agent = None
@@ -27,33 +36,47 @@ def open_game(chosen_game, iterations, algorithm):
     GameInst = GameInstantiator()
     env, agent = GameInst.getAgent(chosen_game, iterations, algorithm)
 
-    # TODO ADD CONFIG OPTIONS:
-    # a = agent.DEFAULT_CONFIG.copy()
-    # z = [(k, a[k]) for k in a if (type(a[k]) in {int, str, bool, dict})]
 
     return env, agent
 
-def animate_game(env, agent, window3):
-	# TODO: CHANGE TO ALLOW FOR ATARI SUPPORT
+def draw_figure(canvas, figure):
+    figure_canvas_agg = FigureCanvasTkAgg(figure, canvas)
+    figure_canvas_agg.draw()
+    figure_canvas_agg.get_tk_widget().pack(side='top', fill='both', expand=1)
+    return figure_canvas_agg
+
+
+def animate_game(env, agent, window3, atari):
     state = env.reset()
     sum_reward = 0
     n_step = 1000
 
+    prep = get_preprocessor(env.observation_space)(env.observation_space)
+
+    rgbs = []
     for step in range(n_step):
         event, values = window3.read(timeout = 0)
         print(event, values)
         if event is None or 'Exit' in event:
             break
-        action = agent.compute_action(state)
+        if atari:
+            action = agent.compute_action(np.mean(prep.transform(state), 2))
+        else:
+            action = agent.compute_action(prep.transform(state))
+
         state, reward, done, info = env.step(action)
         sum_reward += reward
 
-        plt.imshow(env.render(mode="rgb_array"))
+        # if atari:
+        #     rgbs.append(env.render(mode="rgb_array"))
+        # else:
+        env.render()
+
         if done == 1:
             print("cumulative reward", sum_reward)
             state = env.reset()
             sum_reward = 0
-
+    #TODO dhruv show rgbs
     window3.close()
 
 def open_game_menu(chosen_game):
@@ -61,6 +84,7 @@ def open_game_menu(chosen_game):
     agent = None
     show_iters = False
     show_learn_more = False
+
     layout = [[sg.Text('Which algorithm would you like to train?')],
               [sg.Radio(algo, "ALGO", key=algo, enable_events=True) for algo in algorithms] ,
               [sg.Text('How many iterations would you like to view?')],
@@ -95,10 +119,12 @@ def open_game_menu(chosen_game):
             else:
                 n_iter = int(values['iterations']) if values['train'] else [x for x in range(100, 400, 100) if values[str(x)]][0] # Sorry for what I've done
                 algorithm = [x for x in algorithms if values[str(x)]][0]
+
                 env, agent = open_game(chosen_game, n_iter, algorithm)
 
+        atari = False if chosen_game in NON_ATARI else True
         if env != agent:
-            animate_game(env, agent, window2)
+            animate_game(env, agent, window2, atari)
 
         if event is None or 'Exit' in event:
             break

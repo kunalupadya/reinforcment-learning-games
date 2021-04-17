@@ -9,7 +9,7 @@ from time import sleep
 import matplotlib.pyplot as plt
 from gym.utils.play import play, PlayPlot
 from ray import tune
-from ray.rllib.models.preprocessors import get_preprocessor, GenericPixelPreprocessor
+from ray.rllib.models.preprocessors import get_preprocessor
 import numpy as np
 import sys
 import os
@@ -39,7 +39,6 @@ def train_gym_game(agent, n_iter):
             result["episode_reward_mean"],
             result["episode_reward_max"],
             result["episode_len_mean"]
-            # chkpt_file
         ))
 
     policy = agent.get_policy()
@@ -62,7 +61,6 @@ def init_gym_game(select_env, openai_env, n_iter = 5, algorithm = 'PPO', atari =
 
 def run_gym_game(select_env, openai_env, n_iter = 5, atari = False):
     env, agent = init_gym_game(select_env, openai_env, n_iter)
-    print("45")
     state = env.reset()
     sum_reward = 0
     n_step = 1000
@@ -70,25 +68,17 @@ def run_gym_game(select_env, openai_env, n_iter = 5, atari = False):
     rgbs = []
     prep = get_preprocessor(env.observation_space)(env.observation_space)
 
-    globals().update(locals())
     for step in range(n_step):
-        # time.time
         if atari:
             action = agent.compute_action(np.mean(prep.transform(state), 2))
         else:
             action = agent.compute_action(prep.transform(state))
         state, reward, done, info = env.step(action)
         sum_reward += reward
-
-        #sleep(0.250)
         env.render()
 
-        # rgb = env.render(mode="rgb_array")
-        #plt.imshow(rgb)
-        #plt.show()
         if done == 1:
-            # report at the end of each episode
-            print("cumulative reward", sum_reward)
+            # print("cumulative reward", sum_reward)
             state = env.reset()
             sum_reward = 0
     return rgbs, agent
@@ -99,7 +89,7 @@ def gen_saved_agents(select_env, openai_env, checkpoint_path, algorithm):
         agent = train_gym_game(agent, 100)
         agent.save(checkpoint_path)
 
-def restore_saved_agent(select_env, openai_env, checkpoint_path, algorithm):
+def restore_saved_agent(select_env, checkpoint_path, algorithm):
     ray.init(ignore_reinit_error=True)
     register_env(select_env, lambda config: gym.make(select_env))
 
