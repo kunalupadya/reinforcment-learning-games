@@ -53,6 +53,7 @@ def animate_game(env, agent, window3, atari):
 
     prep = get_preprocessor(env.observation_space)(env.observation_space)
 
+    rgbs = []
     for step in range(n_step):
         event, values = window3.read(timeout = 0)
         print(event, values)
@@ -66,12 +67,16 @@ def animate_game(env, agent, window3, atari):
         state, reward, done, info = env.step(action)
         sum_reward += reward
 
-        plt.imshow(env.render(mode="rgb_array"))
+        # if atari:
+        #     rgbs.append(env.render(mode="rgb_array"))
+        # else:
+        env.render()
+
         if done == 1:
             print("cumulative reward", sum_reward)
             state = env.reset()
             sum_reward = 0
-
+    #TODO dhruv show rgbs
     window3.close()
 
 def open_game_menu(chosen_game):

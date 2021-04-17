@@ -13,7 +13,7 @@ GAMES = {
 
 NON_ATARI = {'CartPole-v1', 'LunarLander-v2', 'MountainCar-v0'}
 
-class GameInstantiagit tor():
+class GameInstantiator():
     def __init__(self, testing = False):
         self.testing = testing
 
