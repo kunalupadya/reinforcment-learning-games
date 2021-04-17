@@ -7,6 +7,7 @@ import matplotlib
 from ray.rllib.models.preprocessors import get_preprocessor
 from game_instantiator import GameInstantiator, NON_ATARI
 import numpy as np
+import json
 
 matplotlib.use('TkAgg')
 
@@ -28,23 +29,25 @@ layout.append([sg.Button('Display'), sg.Button('Exit')])
 
 window = sg.Window('Welcome', layout)
 
-def open_game(chosen_game, iterations, algorithm):
+def open_game(chosen_game, iterations, algorithm, params_file):
 
     env = None
     agent = None
 
     GameInst = GameInstantiator()
-    env, agent = GameInst.getAgent(chosen_game, iterations, algorithm)
+    algo, _ = GameInst.getTrainer(algorithm)
+    config = algo.DEFAULT_CONFIG.copy()
+
+    if params_file != '':
+        file = open(params_file, )
+        hyperparameters = json.load(file)
+        for hyperparam in hyperparameters:
+            config[hyperparam[0]] = hyperparam[1]
+
+    env, agent = GameInst.getAgent(chosen_game, iterations, algorithm, config)
 
 
     return env, agent
-
-def draw_figure(canvas, figure):
-    figure_canvas_agg = FigureCanvasTkAgg(figure, canvas)
-    figure_canvas_agg.draw()
-    figure_canvas_agg.get_tk_widget().pack(side='top', fill='both', expand=1)
-    return figure_canvas_agg
-
 
 def animate_game(env, agent, window3, atari):
     state = env.reset()
@@ -90,7 +93,8 @@ def open_game_menu(chosen_game):
               [sg.Text('How many iterations would you like to view?')],
               [sg.Radio('100', "ITER", key='100'), sg.Radio('200', "ITER", key='200'), sg.Radio('300', "ITER", key='300'), sg.Radio('Let me train my own model!', "ITER", key='train')] ,
               [sg.pin(sg.Column([[sg.Text('How many iterations would you like to train?'), sg.Spin([i for i in range(1,11)], key='iterations')]], key='train_opt', visible=show_iters))],
-              [sg.Button('Next'), sg.Button('Exit'), sg.Button('Play Game', key='teach'), sg.Button('Learn About This Algorithm', key = 'learn_more', visible=show_learn_more)]]
+              [sg.pin(sg.Column([[sg.Text('Upload algorithm hyperparameters? (Optional): '), sg.FileBrowse(key='params_file')]], key='upload_params', visible=show_iters))],
+              [sg.Button('Next'), sg.Button('Exit'), sg.Button('Play Game', key='teach'), sg.Button('Learn More', key = 'learn_more', visible=show_learn_more)]]
     window2 = sg.Window('Game Options', layout, modal=True)
 
     while True:
@@ -116,11 +120,12 @@ def open_game_menu(chosen_game):
             if values['train'] and not show_iters:
                 show_iters = True
                 window2['train_opt'].update(visible=show_iters)
+                window2['upload_params'].update(visible=show_iters)
             else:
                 n_iter = int(values['iterations']) if values['train'] else [x for x in range(100, 400, 100) if values[str(x)]][0] # Sorry for what I've done
                 algorithm = [x for x in algorithms if values[str(x)]][0]
 
-                env, agent = open_game(chosen_game, n_iter, algorithm)
+                env, agent = open_game(chosen_game, n_iter, algorithm, values['params_file'])
 
         atari = False if chosen_game in NON_ATARI else True
         if env != agent:
