@@ -5,6 +5,7 @@ import glob
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 import matplotlib
 from ray.rllib.models.preprocessors import get_preprocessor
+from ray.rllib.utils.error import UnsupportedSpaceException
 from game_instantiator import GameInstantiator, NON_ATARI
 import numpy as np
 
@@ -34,8 +35,11 @@ def open_game(chosen_game, iterations, algorithm):
     agent = None
 
     GameInst = GameInstantiator()
-    env, agent = GameInst.getAgent(chosen_game, iterations, algorithm)
 
+    try:
+        env, agent = GameInst.getAgent(chosen_game, iterations, algorithm)
+    except UnsupportedSpaceException:
+        pass #TODO dhruv show some popup that this agent is not supported for the game type
 
     return env, agent
 
