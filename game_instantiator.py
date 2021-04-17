@@ -7,6 +7,7 @@ import os
 class GameInstantiator():
     def __init__(self, testing = False):
         self.testing = testing
+        self.non_atari = ['CartPole-v1', 'LunarLander-v2', 'MountainCar-v0']
 
     def game_call(self, select_env, openai_env, n_iter, algorithm, atari = False):
         if self.testing:
@@ -34,6 +35,13 @@ class GameInstantiator():
 
     def restore_lunar_lander(self, n_iter, algorithm = 'PPO'):
         return restore_saved_agent("LunarLander-v2", None, os.getcwd() + '/LunarLander/' + algorithm + '/checkpoint_' + str(n_iter) + '/checkpoint-' + str(n_iter), algorithm)
+
+    def getAgent(self, chosen_game, n_iter, algorithm):
+        potential_path = chosen_game + '/' + algorithm + '/checkpoint_' + str(n_iter) + '/checkpoint-' + str(n_iter)
+        if os.path.isfile(potential_path):
+            return restore_saved_agent(chosen_game, None, potential_path, algorithm)
+        else:
+            return init_gym_game(chosen_game, None, n_iter, algorithm, chosen_game not in self.non_atari)
 
 if __name__ == "__main__":
 
