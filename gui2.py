@@ -14,36 +14,6 @@ layout1 = [[sg.Text('Welcome to RFFL, where we want to make reinforcement learni
           [sg.Button('Display'), sg.Button('Exit')]]
 
 
-# layout2 = [[sg.Text('Welcome to RFFL, where we want to make reinforcement learning\naccessible and understandable.\n\nWhat game would you like to play?')],
-#           [sg.Combo(['choice 1', 'choice 2', 'choice 3'], enable_events=True, key='combo')],
-#           # [sg.Radio('CartPole', "GAMES", key="CartPole")],
-#           # [sg.Radio('MountainCar', "GAMES", key="MountainCar")],
-#           [sg.Radio('SpaceInvaders', "GAMES", key="SpaceInvaders")],
-#           [sg.Radio('Pong', "GAMES", key="Pong")],
-#           [sg.Radio('LunarLander', "GAMES", key="LunarLander")],
-#           [sg.Button('Display'), sg.Button('Exit')]]
-
-
-
-# window = sg.Window('Window Title', layout1)
-#
-# while True:
-#     event, values = window.read()
-#     print(event)
-#     print(values)
-#     print(event, values)
-#
-#     if event in  (None, 'Exit'):
-#         break
-#
-#     # if
-#
-#     if event == 'Display':
-#         # open_game_menu(values)
-#         window.layout(layout2)
-# window.close()
-
-
 layout1 = [[sg.Text('This is layout 1 - It is all Checkboxes')],
            *[[sg.CB(f'Checkbox {i}')] for i in range(5)]]
 

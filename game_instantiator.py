@@ -11,9 +11,12 @@ GAMES = {
     "MountainCar-v0":False
 }
 
-class GameInstantiator():
+NON_ATARI = {'CartPole-v1', 'LunarLander-v2', 'MountainCar-v0'}
+
+class GameInstantiagit tor():
     def __init__(self, testing = False):
         self.testing = testing
+
 
     def game_call(self, select_env, openai_env, n_iter, algorithm, atari = False):
         if self.testing:
@@ -25,7 +28,7 @@ class GameInstantiator():
         return self.game_call("CartPole-v1", CartPoleEnv(), n_iter, algorithm)
 
     def restore_cartpole(self, n_iter, algorithm = 'PPO'):
-        return restore_saved_agent("CartPole-v1", CartPoleEnv(), os.getcwd() + '/CartPole/' + algorithm + '/checkpoint_' + str(n_iter) + '/checkpoint-' + str(n_iter), algorithm)
+        return restore_saved_agent("CartPole-v1", os.getcwd() + '/CartPole/' + algorithm + '/checkpoint_' + str(n_iter) + '/checkpoint-' + str(n_iter), algorithm)
     #
     # def run_pong(self, n_iter = 5, algorithm = 'PPO'):
     #     return self.game_call("Pong-v0", AtariEnv(game="pong"), n_iter, algorithm, atari = True)
@@ -44,6 +47,13 @@ class GameInstantiator():
     #
     # def restore_lunar_lander(self, n_iter, algorithm = 'PPO'):
     #     return restore_saved_agent("LunarLander-v2", None, os.getcwd() + '/LunarLander/' + algorithm + '/checkpoint_' + str(n_iter) + '/checkpoint-' + str(n_iter), algorithm)
+
+    def getAgent(self, chosen_game, n_iter, algorithm):
+        potential_path = chosen_game + '/' + algorithm + '/checkpoint_' + str(n_iter) + '/checkpoint-' + str(n_iter)
+        if os.path.isfile(potential_path):
+            return restore_saved_agent(chosen_game, potential_path, algorithm)
+        else:
+            return init_gym_game(chosen_game, None, n_iter, algorithm, chosen_game not in NON_ATARI)
 
 if __name__ == "__main__":
 

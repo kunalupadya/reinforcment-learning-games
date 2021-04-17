@@ -14,6 +14,12 @@ import numpy as np
 import sys
 import os
 
+# ONLY CHANGE IF TRAINING MODELS LOCALLY
+TRAIN_LOCAL = True
+
+SELECT_ENV = "MountainCar-v0"
+ALGORITHM = "PPO"
+
 def get_trainer(algorithm):
     if algorithm == 'PPO':
         return ppo, ppo.PPOTrainer
@@ -83,7 +89,7 @@ def gen_saved_agents(select_env, openai_env, checkpoint_path, algorithm):
         agent = train_gym_game(agent, 100)
         agent.save(checkpoint_path)
 
-def restore_saved_agent(select_env, openai_env, checkpoint_path, algorithm, atari=False):
+def restore_saved_agent(select_env, checkpoint_path, algorithm):
     ray.init(ignore_reinit_error=True)
     register_env(select_env, lambda config: gym.make(select_env))
 
@@ -94,15 +100,19 @@ def restore_saved_agent(select_env, openai_env, checkpoint_path, algorithm, atar
     agent.restore(checkpoint_path)
     # apply the trained policy in a rollout
     env = gym.make(select_env)
-    return env, agent, atari
+    return env, agent
 
 if __name__ == "__main__":
-    if len(sys.argv) > 1 and sys.argv[1] == 'CartPole':
+    if TRAIN_LOCAL == True:
+        checkpoint_path = os.getcwd() + '/' + SELECT_ENV + '/' + ALGORITHM
+        print(checkpoint_path)
+        gen_saved_agents(SELECT_ENV, None, checkpoint_path, ALGORITHM)
+    elif len(sys.argv) > 1 and sys.argv[1] == 'CartPole':
         from gym.envs.classic_control import CartPoleEnv
         algorithm = 'PPO' if len(sys.argv) > 1 else sys.argv[2]
         checkpoint_path = os.getcwd() + '/' + sys.argv[1] + '/' + algorithm if len(sys.argv) > 2 else sys.argv[3]
         gen_saved_agents("CartPole-v1", CartPoleEnv(), checkpoint_path, algorithm)
-    if len(sys.argv) > 1 and sys.argv[1] == 'LunarLander':
+    elif len(sys.argv) > 1 and sys.argv[1] == 'LunarLander':
         algorithm = 'PPO' if len(sys.argv) == 1 else sys.argv[2]
         checkpoint_path = os.getcwd() + '/' + sys.argv[1] + '/' + algorithm if len(sys.argv) > 2 else sys.argv[3]
         print(checkpoint_path)
