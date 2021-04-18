@@ -134,6 +134,7 @@ dmypy.json
 venv
 testing.py
 .idea
+cartpole.sh
 
 # Annoying
 .DS_Store
