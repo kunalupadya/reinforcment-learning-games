@@ -49,8 +49,7 @@ def open_game(chosen_game, iterations, algorithm, params_file):
     try:
         env, agent = GameInst.getAgent(chosen_game, iterations, algorithm, config)
     except UnsupportedSpaceException:
-        pass  # TODO dhruv show some popup that this agent is not supported for the game type
-
+        sg.Popup('Algorithm not supported')
 
     return env, agent
 
