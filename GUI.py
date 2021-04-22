@@ -102,11 +102,13 @@ def open_game_menu(chosen_game):
     agent = None
     show_iters = False
     show_learn_more = False
+    print(chosen_game + '/*/')
+    show_iterations = not glob.glob(chosen_game + '/*/') == []
 
     layout = [[sg.Text('Which algorithm would you like to train?')],
               [sg.Radio(algo, "ALGO", key=algo, enable_events=True) for algo in algorithms] ,
               [sg.Text('How many iterations would you like to view?')],
-              [sg.Radio('100', "ITER", key='100'), sg.Radio('200', "ITER", key='200'), sg.Radio('300', "ITER", key='300'), sg.Radio('Let me train my own model!', "ITER", key='train')] ,
+              [sg.Radio('100', "ITER", key='100', visible = show_iterations), sg.Radio('200', "ITER", key='200', visible = show_iterations), sg.Radio('300', "ITER", key='300', visible = show_iterations), sg.Radio('Let me train my own model!', "ITER", key='train')] ,
               [sg.pin(sg.Column([[sg.Text('How many iterations would you like to train?'), sg.Spin([i for i in range(1,11)], key='iterations')]], key='train_opt', visible=show_iters))],
               [sg.pin(sg.Column([[sg.Text('Upload algorithm hyperparameters? (Optional): '), sg.FileBrowse(key='params_file')]], key='upload_params', visible=show_iters))],
               [sg.Button('Next'), sg.Button('Exit'), sg.Button('Play Game', key='teach'), sg.Button('Learn More', key = 'learn_more', visible=show_learn_more)]]
