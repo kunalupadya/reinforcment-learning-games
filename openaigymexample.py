@@ -17,8 +17,8 @@ import os
 # ONLY CHANGE IF TRAINING MODELS LOCALLY
 TRAIN_LOCAL = True
 
-SELECT_ENV = "BipedalWalker-v3"
-ALGORITHM = "DQN"
+SELECT_ENV = "Alien-v0"
+ALGORITHM = "PPO"
 
 
 def get_trainer(algorithm):
