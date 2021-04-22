@@ -13,11 +13,13 @@ from ray.rllib.models.preprocessors import get_preprocessor
 import numpy as np
 import sys
 import os
+from BlackjackEnvRender import BlackjackEnvRender
+import gym_snake #this line is important to import all snake envs, do not delete
 
 # ONLY CHANGE IF TRAINING MODELS LOCALLY
 TRAIN_LOCAL = True
 
-SELECT_ENV = "Alien-v0"
+SELECT_ENV = "Snake-v0"
 ALGORITHM = "PPO"
 
 
@@ -49,7 +51,8 @@ def train_gym_game(agent, n_iter):
 
 def init_gym_game(select_env, n_iter = 5, algorithm = 'PPO', config = None):
     ray.init(ignore_reinit_error=True)
-    register_env(select_env, lambda config: gym.make(select_env))
+    env = make_env(select_env)
+    register_env(select_env, lambda config: env)
 
     algo, trainer = get_trainer(algorithm)
 
@@ -58,7 +61,7 @@ def init_gym_game(select_env, n_iter = 5, algorithm = 'PPO', config = None):
     config["log_level"] = "WARN"
     agent = train_gym_game(trainer(config, env=select_env), n_iter)
     # apply the trained policy in a rollout
-    env = gym.make(select_env)
+    env = make_env(select_env)
     return env, agent
 
 def gen_saved_agents(select_env, checkpoint_path, algorithm):
@@ -69,7 +72,8 @@ def gen_saved_agents(select_env, checkpoint_path, algorithm):
 
 def restore_saved_agent(select_env, checkpoint_path, algorithm):
     ray.init(ignore_reinit_error=True)
-    register_env(select_env, lambda config: gym.make(select_env))
+    env = make_env(select_env)
+    register_env(select_env, lambda config: env)
 
     algo, trainer = get_trainer(algorithm)
     config = algo.DEFAULT_CONFIG.copy()
@@ -77,8 +81,19 @@ def restore_saved_agent(select_env, checkpoint_path, algorithm):
     agent = trainer(config, env=select_env)
     agent.restore(checkpoint_path)
     # apply the trained policy in a rollout
-    env = gym.make(select_env)
+    env = make_env(select_env)
     return env, agent
+
+
+def make_env(select_env):
+    if select_env == "Blackjack-v0":
+        env = BlackjackEnvRender()
+    elif select_env == "Snake-v0":
+        env = gym.make("Snake-42x42-v0")
+    else:
+        env = gym.make(select_env)
+    return env
+
 
 if __name__ == "__main__":
     checkpoint_path = os.getcwd() + '/' + SELECT_ENV + '/' + ALGORITHM

@@ -169,11 +169,11 @@ INITIAL_BALANCE = 1000
 NUM_DECKS = 6
 
 
-class BlackjackEnv(gym.Env):
+class BlackjackEnvRender(gym.Env):
     metadata = {'render.modes': ['human']}
 
     def __init__(self):
-        super(BlackjackEnv, self).__init__()
+        super(BlackjackEnvRender, self).__init__()
 
         # Initialize the blackjack deck.
         self.bj_deck = Deck(NUM_DECKS)

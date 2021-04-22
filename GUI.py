@@ -68,17 +68,17 @@ def animate_game(env, agent, window3, chosen_game):
         print(event, values)
         if event is None or 'Exit' in event:
             break
-        if atari:
+        if chosen_game == "Blackjack-v0":
+            action = agent.compute_action(state)
+        elif chosen_game == "Snake-v0":
+            action = agent.compute_action(state)
+        elif atari:
             action = agent.compute_action(np.mean(prep.transform(state), 2))
         else:
             action = agent.compute_action(prep.transform(state))
 
         state, reward, done, info = env.step(action)
         sum_reward += reward
-
-        # if atari:
-        #     rgbs.append(env.render(mode="rgb_array"))
-        # else:
         env.render()
 
         if done == 1:
@@ -86,6 +86,7 @@ def animate_game(env, agent, window3, chosen_game):
             state = env.reset()
             sum_reward = 0
     #TODO dhruv show rgbs
+
     window3.close()
 
 def open_game_menu(chosen_game):
