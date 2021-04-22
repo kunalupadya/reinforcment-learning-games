@@ -97,6 +97,28 @@ def animate_game(env, agent, window3, chosen_game):
 
     window3.close()
 
+def show_leaderboard(chosen_game):
+    header_list = ['Name','Iterations', 'Mean Reward']
+    data = [['Name_1', '100', '0.5'], ['Name_2', '100', '0.75']]
+    data.sort(key = lambda x: x[2], reverse=True)
+    layout = [[sg.Table(key = 'table', values = data,
+        headings = header_list,
+        display_row_numbers=True,
+        auto_size_columns=False,
+        num_rows=min(5, len(data)))], [sg.Button('Download hyperparameters'), sg.Button('Exit')]]
+    leaderboard_window = sg.Window('Leaderboard', layout)
+    while True:
+        event, values = leaderboard_window.read()
+        if event == 'Download hyperparameters':
+            # Not tested but it should be something like this:
+            # for config in list_of_configs:
+            #     with open('result.json', 'w') as f:
+            #         json.dump(config, f)
+            continue
+        if event == 'Exit':
+            break
+    leaderboard_window.close()
+
 def open_game_menu(chosen_game):
     env = None
     agent = None
@@ -111,7 +133,7 @@ def open_game_menu(chosen_game):
               [sg.Radio('100', "ITER", key='100', visible = show_iterations), sg.Radio('200', "ITER", key='200', visible = show_iterations), sg.Radio('300', "ITER", key='300', visible = show_iterations), sg.Radio('Let me train my own model!', "ITER", key='train')] ,
               [sg.pin(sg.Column([[sg.Text('How many iterations would you like to train?'), sg.Spin([i for i in range(1,11)], key='iterations')]], key='train_opt', visible=show_iters))],
               [sg.pin(sg.Column([[sg.Text('Upload algorithm hyperparameters? (Optional): '), sg.FileBrowse(key='params_file')]], key='upload_params', visible=show_iters))],
-              [sg.Button('Next'), sg.Button('Exit'), sg.Button('Play Game', key='teach'), sg.Button('Learn More', key = 'learn_more', visible=show_learn_more)]]
+              [sg.Button('Next'), sg.Button('Exit'), sg.Button('Leaderboard'), sg.Button('Play Game', key='teach'), sg.Button('Learn More', key = 'learn_more', visible=show_learn_more)]]
     window2 = sg.Window('Game Options', layout, modal=True)
 
     while True:
@@ -147,6 +169,8 @@ def open_game_menu(chosen_game):
         if env != agent:
             animate_game(env, agent, window2, chosen_game)
 
+        if event == 'Leaderboard':
+            show_leaderboard(chosen_game)
 
         if event is None or 'Exit' in event:
             break
