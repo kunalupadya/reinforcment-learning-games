@@ -9,7 +9,7 @@ GAMES = {
     "MountainCar-v0":False
 }
 
-NON_ATARI = {'CartPole-v1', 'LunarLander-v2', 'MountainCar-v0'}
+NON_ATARI = {'CartPole-v1', 'LunarLander-v2', 'MountainCar-v0', 'Blackjack-v0', 'BipedalWalker-v3','BipedalWalkerHadcore-v3'}
 
 class GameInstantiator():
     def getAgent(self, chosen_game, n_iter, algorithm, config):

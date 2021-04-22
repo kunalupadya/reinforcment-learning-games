@@ -9,6 +9,7 @@ from ray.rllib.utils.error import UnsupportedSpaceException
 from game_instantiator import GameInstantiator, NON_ATARI
 import numpy as np
 import json
+from PIL import Image, ImageTk
 
 matplotlib.use('TkAgg')
 
@@ -63,6 +64,9 @@ def animate_game(env, agent, window3, chosen_game):
     prep = get_preprocessor(env.observation_space)(env.observation_space)
 
     rgbs = []
+    if atari:
+        layout = [[sg.Image(key="image")]]
+        window3 = sg.Window('Game Viewer', layout, modal = True)
     for step in range(n_step):
         event, values = window3.read(timeout = 0)
         print(event, values)
@@ -79,13 +83,17 @@ def animate_game(env, agent, window3, chosen_game):
 
         state, reward, done, info = env.step(action)
         sum_reward += reward
-        env.render()
+
+
+        if atari:
+            window3["image"].update(data=ImageTk.PhotoImage(Image.fromarray(env.render(mode="rgb_array"))))
+        else:
+            env.render()
 
         if done == 1:
             print("cumulative reward", sum_reward)
             state = env.reset()
             sum_reward = 0
-    #TODO dhruv show rgbs
 
     window3.close()
 
@@ -136,6 +144,7 @@ def open_game_menu(chosen_game):
 
         if env != agent:
             animate_game(env, agent, window2, chosen_game)
+
 
         if event is None or 'Exit' in event:
             break
