@@ -53,7 +53,9 @@ def open_game(chosen_game, iterations, algorithm, params_file):
 
     return env, agent
 
-def animate_game(env, agent, window3, atari):
+def animate_game(env, agent, window3, chosen_game):
+    atari = False if chosen_game in NON_ATARI else True
+
     state = env.reset()
     sum_reward = 0
     n_step = 1000
@@ -131,9 +133,8 @@ def open_game_menu(chosen_game):
 
                 env, agent = open_game(chosen_game, n_iter, algorithm, values['params_file'])
 
-        atari = False if chosen_game in NON_ATARI else True
         if env != agent:
-            animate_game(env, agent, window2, atari)
+            animate_game(env, agent, window2, chosen_game)
 
         if event is None or 'Exit' in event:
             break
