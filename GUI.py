@@ -26,7 +26,7 @@ games = [x[:-1] for x in glob.glob('*-*/')]
 sg.theme('SystemDefaultForReal')
 
 layout = [[sg.Text('Welcome to the RFFL, where we want to make reinforcement learning\naccessible and understandable.\n\nWhat game would you like to play?')]]
-layout.extend([[sg.Radio(x.split('-')[0], "GAMES", key=x)] for x in games])
+layout.extend([[sg.Combo(sorted([x.split('-')[0] for x in games]), key = "games")]])
 layout.append([sg.Button('Display'), sg.Button('Exit')])
 
 window = sg.Window('Welcome', layout)
@@ -160,7 +160,7 @@ while True:
         break
 
     if event == 'Display':
-        chosen_game = [x for x in games if values[x]][0]
+        chosen_game = [x for x in games if x.split('-')[0] == values['games']][0]
         open_game_menu(chosen_game)
 
 window.close() 
