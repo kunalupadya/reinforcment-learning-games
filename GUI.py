@@ -10,6 +10,7 @@ from game_instantiator import GameInstantiator, NON_ATARI
 import numpy as np
 import json
 from PIL import Image, ImageTk
+import leaderboard
 
 matplotlib.use('TkAgg')
 
@@ -40,15 +41,18 @@ def open_game(chosen_game, iterations, algorithm, params_file):
 
     algo, _ = GameInst.getTrainer(algorithm)
     config = algo.DEFAULT_CONFIG.copy()
-
+    hyperparameters = json.load(open(algorithm+'_Hyperparameters.json',))
     if params_file != '':
         file = open(params_file, )
         hyperparameters = json.load(file)
         for hyperparam in hyperparameters:
             config[hyperparam[0]] = hyperparam[1]
 
+
     try:
-        env, agent = GameInst.getAgent(chosen_game, iterations, algorithm, config)
+        env, agent, sumstats = GameInst.getAgent(chosen_game, iterations, algorithm, config)
+        if sumstats:
+            leaderboard.put(chosen_game, algorithm, sumstats, hyperparameters, iterations)
     except UnsupportedSpaceException:
         sg.Popup('Algorithm not supported')
 
@@ -98,9 +102,10 @@ def animate_game(env, agent, window3, chosen_game):
     window3.close()
 
 def show_leaderboard(chosen_game):
-    header_list = ['Name','Iterations', 'Mean Reward']
-    data = [['Name_1', '100', '0.5'], ['Name_2', '100', '0.75']]
-    data.sort(key = lambda x: x[2], reverse=True)
+    all_data = leaderboard.get(chosen_game)
+    data = [[i['algo'], i['iters'], i['result']['episode_reward_min'], i['result']['episode_reward_mean'], i['result']['episode_reward_max'], i['result']['episode_len_mean']] for i in all_data]
+    header_list = ['Algorithm','Iterations', 'Min Reward','Mean Reward', 'Max Reward', 'Mean Episode Length']
+    data.sort(key = lambda x: x[3], reverse=True)
     layout = [[sg.Table(key = 'table', values = data,
         headings = header_list,
         display_row_numbers=True,
@@ -112,12 +117,14 @@ def show_leaderboard(chosen_game):
         if event == 'Download hyperparameters':
             # Not tested but it should be something like this:
             # for config in list_of_configs:
-            #     with open('result.json', 'w') as f:
-            #         json.dump(config, f)
+            with open('downloaded_model_hyperparameters.json', 'w') as f:
+                json.dump(all_data[values['table'][0]]['params'], f)
+            # values[]
             continue
         if event == 'Exit':
             break
     leaderboard_window.close()
+
 
 def open_game_menu(chosen_game):
     env = None

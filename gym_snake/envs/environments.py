@@ -40,7 +40,7 @@ class Snake_16x16(SnakeEnv):
         super().__init__(grid_size=16)
 class Snake_42x42(SnakeEnv):
     def __init__(self):
-        super().__init__(grid_size=42)
+        super().__init__(grid_size=42, reward_none=0.05)
 
 class Snake_Hex_4x4(SnakeEnv):
     def __init__(self):

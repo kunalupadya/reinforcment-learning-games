@@ -46,8 +46,12 @@ def train_gym_game(agent, n_iter):
 
     policy = agent.get_policy()
     model = policy.model
+    sumstats = {'episode_reward_min':result["episode_reward_min"],
+            'episode_reward_mean':result["episode_reward_mean"],
+            'episode_reward_max':result["episode_reward_max"],
+            'episode_len_mean':result["episode_len_mean"]}
     print(model.base_model.summary())
-    return agent
+    return agent, sumstats
 
 def init_gym_game(select_env, n_iter = 5, algorithm = 'PPO', config = None):
     ray.init(ignore_reinit_error=True)
@@ -59,13 +63,13 @@ def init_gym_game(select_env, n_iter = 5, algorithm = 'PPO', config = None):
     if config == None:
         config = algo.DEFAULT_CONFIG.copy()
     config["log_level"] = "WARN"
-    agent = train_gym_game(trainer(config, env=select_env), n_iter)
+    agent, sumstats = train_gym_game(trainer(config, env=select_env), n_iter)
     # apply the trained policy in a rollout
     env = make_env(select_env)
-    return env, agent
+    return env, agent, sumstats
 
 def gen_saved_agents(select_env, checkpoint_path, algorithm):
-    env, agent = init_gym_game(select_env, 0, algorithm)
+    env, agent, sumstats = init_gym_game(select_env, 0, algorithm)
     for i in range(3):
         agent = train_gym_game(agent, 100)
         agent.save(checkpoint_path)
@@ -82,7 +86,7 @@ def restore_saved_agent(select_env, checkpoint_path, algorithm):
     agent.restore(checkpoint_path)
     # apply the trained policy in a rollout
     env = make_env(select_env)
-    return env, agent
+    return env, agent, None
 
 
 def make_env(select_env):
@@ -96,6 +100,10 @@ def make_env(select_env):
 
 
 if __name__ == "__main__":
-    checkpoint_path = os.getcwd() + '/' + SELECT_ENV + '/' + ALGORITHM
-    print(checkpoint_path)
-    gen_saved_agents(SELECT_ENV, checkpoint_path, ALGORITHM)
+    # checkpoint_path = os.getcwd() + '/' + SELECT_ENV + '/' + ALGORITHM
+    # print(checkpoint_path)
+    # gen_saved_agents(SELECT_ENV, checkpoint_path, ALGORITHM)
+
+    env, agent, sumstats = init_gym_game("CartPole-v1", 1)
+
+    # train_gym_game(agent, 1)
