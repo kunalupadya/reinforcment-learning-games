@@ -1,8 +1,6 @@
 import PySimpleGUI as sg
 import webbrowser
-from matplotlib import pyplot as plt
 import glob
-from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 import matplotlib
 from ray.rllib.models.preprocessors import get_preprocessor
 from ray.rllib.utils.error import UnsupportedSpaceException
@@ -115,11 +113,8 @@ def show_leaderboard(chosen_game):
     while True:
         event, values = leaderboard_window.read()
         if event == 'Download hyperparameters':
-            # Not tested but it should be something like this:
-            # for config in list_of_configs:
             with open('downloaded_model_hyperparameters.json', 'w') as f:
                 json.dump(all_data[values['table'][0]]['params'], f)
-            # values[]
             continue
         if event == 'Exit':
             break
