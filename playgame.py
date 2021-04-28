@@ -1,15 +1,77 @@
 import PySimpleGUI as sg
 #from game_instantiator import GameInstantiator
 import gym
+import numpy as np
 from gym.utils.play import play, PlayPlot
 import ray
 from ray import tune
 from ray.rllib.agents.impala import ImpalaTrainer
+import ray.rllib.agents.ppo as ppo
+import ray.rllib.agents.dqn as dqn
+import json
+import gym
+import numpy as np
+import os
 
+#import ray._private.utils
+
+from ray.rllib.models.preprocessors import get_preprocessor
+from ray.rllib.evaluation.sample_batch_builder import SampleBatchBuilder
+from ray.rllib.offline.json_writer import JsonWriter
+
+def writeToJson(input_list, path):
+    batch_builder = SampleBatchBuilder()  # or MultiAgentSampleBatchBuilder
+    writer = JsonWriter(path)
+
+    # You normally wouldn't want to manually create sample batches if a
+    # simulator is available, but let's do it anyways for example purposes:
+    env = gym.make("CartPole-v0")
+
+    # RLlib uses preprocessors to implement transforms such as one-hot encoding
+    # and flattening of tuple and dict observations. For CartPole a no-op
+    # preprocessor is used, but this may be relevant for more complex envs.
+    prep = lambda x:x
+    #prep = get_preprocessor(env.observation_space)(env.observation_space)
+    #print("The preprocessor is", prep)
+
+    eps_id = 0
+    t = 0
+    prev_action = np.zeros_like(0)
+    prev_reward = 0
+    for i in range(len(input_list)):
+        obs, new_obs, action, rew, done, info = tuple(input_list[i])
+        batch_builder.add_values(
+            t=t,
+            eps_id=eps_id,
+            agent_index=0,
+            #obs=prep.transform(obs),
+            obs = obs,
+            actions=action,
+            action_prob=1.0,  # put the true action probability here
+            action_logp=0.0,
+            rewards=rew,
+            prev_actions=prev_action,
+            prev_rewards=prev_reward,
+            dones=done,
+            infos=info,
+            #new_obs=prep.transform(new_obs))
+            new_obs=new_obs)
+        #obs = new_obs
+        prev_action = action
+        prev_reward = rew
+        t += 1
+        if input_list[i][4] == True:
+            eps_id = eps_id + 1
+            t = 0
+            prev_action = np.zeros_like(0)
+            prev_reward = 0
+    writer.write(batch_builder.build_and_reset())
 ## Code from https://www.codeproject.com/Articles/5271948/Learning-Breakout-More-Quickly
 ## Playing the game manually
 
 def callback(ob_t, obs_tp1, action, rew, done, info):
+    global gameIters
+    gameIters.append([ob_t, obs_tp1, action, rew, done, info])
     return [rew]
 
 def runCartPole():
@@ -17,9 +79,9 @@ def runCartPole():
     cartPole[(ord('a'),)] = 0
     cartPole[(ord('d'),)] = 1
     env = gym.make("CartPole-v1")
-    # play(env, callback=plotter.callback, zoom=1)
-    play(env, keys_to_action=cartPole)
-#plotter = PlayPlot(callback, 30*5, ["reward"])
+    #plotter = PlayPlot(callback, 30 * 5, ["reward"])
+    play(env, fps=10, callback=callback, zoom=1, keys_to_action=cartPole)
+    #play(env, keys_to_action=cartPole)
 
 
 
@@ -35,8 +97,68 @@ def makePlayWindow():
             runCartPole()
     window.close()
 
+def get_trainer(algorithm):
+    if algorithm == 'PPO':
+        return ppo, ppo.PPOTrainer
+    elif algorithm == 'DQN':
+        return dqn, dqn.DQNTrainer
+
+def train_gym_game(agent, n_iter):
+    status = "{:2d} reward {:6.2f}/{:6.2f}/{:6.2f} len {:4.2f}"
+    for n in range(n_iter):
+        result = agent.train()
+        # chkpt_file = agent.save(chkpt_root)
+
+        print(status.format(
+            n + 1,
+            result["episode_reward_min"],
+            result["episode_reward_mean"],
+            result["episode_reward_max"],
+            result["episode_len_mean"]
+            # chkpt_file
+        ))
+    policy = agent.get_policy()
+    model = policy.model
+    print(model.base_model.summary())
+    return agent
+
+def makeArrayListIntoDict(input):
+    return_dict = dict()
+    return_dict["ob_t"] = list()
+    return_dict["obs_tp1"] = list()
+    return_dict["action"] = list()
+    return_dict["rew"] = list()
+    return_dict["done"] = list()
+    for element in input:
+        return_dict["ob_t"].append(element[0].tolist())
+        return_dict["obs_tp1"].append(element[1].tolist())
+        return_dict["actions"].append(element[2])
+        return_dict["rew"].append(element[3])
+        return_dict["done"].append(element[4])
+    return return_dict
+
 if __name__ == "__main__":
-    makePlayWindow()
+    gameIters = []
+    runCartPole()
+    ray.init(ignore_reinit_error=True)
+    #print(gameIters)
+    #json_str= json.dumps(makeArrayListIntoDict(gameIters))
+    #print(json_str)
+    #out_file = open("test.json", "w")
+    #json.dump(makeArrayListIntoDict(gameIters), out_file)
+    #out_file.close()
+    path = "/Users/austin/Documents/reinforcment-learning-games/testing"
+    writeToJson(gameIters, path)
+    algo, trainer = get_trainer("DQN")
+
+    config = algo.DEFAULT_CONFIG.copy()
+    config["log_level"] = "WARN"
+    config["input"] = path
+    config["input_evaluation"] = ["wis"]
+    print("Starting training")
+    agent = train_gym_game(trainer(config, env="CartPole-v0"), 10)
+    #print(gameIters)
+    #makePlayWindow()
 
 
 ## Ignore the code below

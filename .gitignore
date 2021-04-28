@@ -135,6 +135,7 @@ venv
 testing.py
 .idea
 cartpole.sh
+testing/
 
 # Annoying
 .DS_Store
