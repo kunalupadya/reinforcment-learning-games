@@ -122,21 +122,6 @@ def train_gym_game(agent, n_iter):
     print(model.base_model.summary())
     return agent
 
-def makeArrayListIntoDict(input):
-    return_dict = dict()
-    return_dict["ob_t"] = list()
-    return_dict["obs_tp1"] = list()
-    return_dict["action"] = list()
-    return_dict["rew"] = list()
-    return_dict["done"] = list()
-    for element in input:
-        return_dict["ob_t"].append(element[0].tolist())
-        return_dict["obs_tp1"].append(element[1].tolist())
-        return_dict["actions"].append(element[2])
-        return_dict["rew"].append(element[3])
-        return_dict["done"].append(element[4])
-    return return_dict
-
 if __name__ == "__main__":
     gameIters = []
     runCartPole()

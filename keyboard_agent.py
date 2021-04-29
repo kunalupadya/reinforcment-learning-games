@@ -1,6 +1,13 @@
 #!/usr/bin/env python
 import sys, gym, time
-
+import gym
+import numpy as np
+import ray
+from ray.rllib.evaluation.sample_batch_builder import SampleBatchBuilder
+from ray.rllib.offline.json_writer import JsonWriter
+from openaigymexample import train_gym_game
+from openaigymexample import get_trainer
+import os
 #
 # Test yourself as a learning agent! Pass environment name as a command-line argument, for example:
 #
@@ -36,6 +43,7 @@ def rollout(env):
     skip = 0
     total_reward = 0
     total_timesteps = 0
+    global gameIters
     while 1:
         if not skip:
             #print("taking action {}".format(human_agent_action))
@@ -46,6 +54,7 @@ def rollout(env):
             skip -= 1
 
         obser, r, done, info = env.step(a)
+        gameIters.append([obser, a, r, done, info])
         total_reward += r
         window_still_open = env.render()
         if window_still_open==False: return False
@@ -73,7 +82,77 @@ def humanTrainGame(environment):
     while 1:
         window_still_open = rollout(env)
         if window_still_open==False: break
+    print("Starting training")
+    ray.init(ignore_reinit_error=True)
+    path = os.path.join(os.getcwd(), "testing")
+    writeToJson(gameIters, path)
+    algo, trainer = get_trainer("DQN")
+
+    config = algo.DEFAULT_CONFIG.copy()
+    config["log_level"] = "WARN"
+    config["input"] = path
+    config["input_evaluation"] = ["wis"]
+    print("Starting training")
+    agent = train_gym_game(trainer(config, env="CartPole-v0"), 10)
+    print("Training has finished")
+    return agent
+
+def callback(ob_t, obs_tp1, action, rew, done, info):
+    global gameIters
+    gameIters.append([ob_t, obs_tp1, action, rew, done, info])
+    return [rew]
+
+def writeToJson(input_list, path):
+    batch_builder = SampleBatchBuilder()  # or MultiAgentSampleBatchBuilder
+    writer = JsonWriter(path)
+
+    # You normally wouldn't want to manually create sample batches if a
+    # simulator is available, but let's do it anyways for example purposes:
+    env = gym.make("CartPole-v0")
+
+    # RLlib uses preprocessors to implement transforms such as one-hot encoding
+    # and flattening of tuple and dict observations. For CartPole a no-op
+    # preprocessor is used, but this may be relevant for more complex envs.
+    prep = lambda x:x
+    #prep = get_preprocessor(env.observation_space)(env.observation_space)
+    #print("The preprocessor is", prep)
+
+    eps_id = 0
+    t = 0
+    obs = env.reset()
+    prev_action = np.zeros_like(0)
+    prev_reward = 0
+    for i in range(len(input_list)):
+        new_obs, action, rew, done, info = tuple(input_list[i])
+        batch_builder.add_values(
+            t=t,
+            eps_id=eps_id,
+            agent_index=0,
+            #obs=prep.transform(obs),
+            obs = obs,
+            actions=action,
+            action_prob=1.0,  # put the true action probability here
+            action_logp=0.0,
+            rewards=rew,
+            prev_actions=prev_action,
+            prev_rewards=prev_reward,
+            dones=done,
+            infos=info,
+            #new_obs=prep.transform(new_obs))
+            new_obs=new_obs)
+        obs = new_obs
+        prev_action = action
+        prev_reward = rew
+        t += 1
+        if input_list[i][4] == True:
+            eps_id = eps_id + 1
+            t = 0
+            prev_action = np.zeros_like(0)
+            prev_reward = 0
+    writer.write(batch_builder.build_and_reset())
 
 if __name__ == "__main__":
-    environment = 'MountainCar-v0' if len(sys.argv) == 1 else sys.argv[1]
+    #environment = 'MountainCar-v0' if len(sys.argv) == 1 else sys.argv[1]
+    gameIters = []
+    environment = "CartPole-v0"
     humanTrainGame(environment)
