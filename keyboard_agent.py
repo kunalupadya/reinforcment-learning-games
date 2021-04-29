@@ -36,14 +36,13 @@ def key_release(key, mod):
     if human_agent_action == a:
         human_agent_action = 0
 
-def rollout(env):
+def rollout(env, iterations):
     global human_agent_action, human_wants_restart, human_sets_pause, SKIP_CONTROL
     human_wants_restart = False
     obser = env.reset()
     skip = 0
     total_reward = 0
     total_timesteps = 0
-    global gameIters
     while 1:
         if not skip:
             #print("taking action {}".format(human_agent_action))
@@ -54,7 +53,7 @@ def rollout(env):
             skip -= 1
 
         obser, r, done, info = env.step(a)
-        gameIters.append([obser, a, r, done, info])
+        iterations.append([obser, a, r, done, info])
         total_reward += r
         window_still_open = env.render()
         if window_still_open==False: return False
@@ -78,14 +77,15 @@ def humanTrainGame(environment):
     env.render()
     env.unwrapped.viewer.window.on_key_press = key_press
     env.unwrapped.viewer.window.on_key_release = key_release
+    gameIters = []
 
     while 1:
-        window_still_open = rollout(env)
+        window_still_open = rollout(env, gameIters)
         if window_still_open==False: break
     print("Starting training")
     ray.init(ignore_reinit_error=True)
     path = os.path.join(os.getcwd(), "testing")
-    writeToJson(gameIters, path)
+    writeToJson(env, gameIters, path)
     algo, trainer = get_trainer("DQN")
 
     config = algo.DEFAULT_CONFIG.copy()
@@ -93,22 +93,17 @@ def humanTrainGame(environment):
     config["input"] = path
     config["input_evaluation"] = ["wis"]
     print("Starting training")
-    agent = train_gym_game(trainer(config, env="CartPole-v0"), 10)
+    agent = train_gym_game(trainer(config, env=environment), 10)
     print("Training has finished")
     return agent
 
-def callback(ob_t, obs_tp1, action, rew, done, info):
-    global gameIters
-    gameIters.append([ob_t, obs_tp1, action, rew, done, info])
-    return [rew]
-
-def writeToJson(input_list, path):
+def writeToJson(env, input_list, path):
     batch_builder = SampleBatchBuilder()  # or MultiAgentSampleBatchBuilder
     writer = JsonWriter(path)
 
     # You normally wouldn't want to manually create sample batches if a
     # simulator is available, but let's do it anyways for example purposes:
-    env = gym.make("CartPole-v0")
+    #env = gym.make(game)
 
     # RLlib uses preprocessors to implement transforms such as one-hot encoding
     # and flattening of tuple and dict observations. For CartPole a no-op
@@ -153,6 +148,6 @@ def writeToJson(input_list, path):
 
 if __name__ == "__main__":
     #environment = 'MountainCar-v0' if len(sys.argv) == 1 else sys.argv[1]
-    gameIters = []
-    environment = "CartPole-v0"
+    #gameIters = []
+    environment = "CartPole-v1"
     humanTrainGame(environment)

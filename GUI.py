@@ -9,6 +9,7 @@ import numpy as np
 import json
 from PIL import Image, ImageTk
 import leaderboard
+from openaigymexample import make_env
 
 matplotlib.use('TkAgg')
 
