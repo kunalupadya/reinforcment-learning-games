@@ -155,7 +155,8 @@ def open_game_menu(chosen_game):
 
         if event == 'teach':
             from keyboard_agent import humanTrainGame
-            humanTrainGame(chosen_game)
+            trained_agent, summary = humanTrainGame(chosen_game)
+            animate_game(make_env(chosen_game), trained_agent, window2, chosen_game)
 
 
         if event == 'Next':
