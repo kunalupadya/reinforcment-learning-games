@@ -84,7 +84,7 @@ def humanTrainGame(environment):
         if window_still_open==False: break
     print("Starting training")
     ray.init(ignore_reinit_error=True)
-    path = os.path.join(os.getcwd(), "testing")
+    path = os.path.join(os.getcwd(), "gameplay", environment)
     writeToJson(env, gameIters, path)
     algo, trainer = get_trainer("DQN")
 
@@ -149,5 +149,5 @@ def writeToJson(env, input_list, path):
 if __name__ == "__main__":
     #environment = 'MountainCar-v0' if len(sys.argv) == 1 else sys.argv[1]
     #gameIters = []
-    environment = "CartPole-v1"
+    environment = "MountainCar-v0"
     humanTrainGame(environment)
