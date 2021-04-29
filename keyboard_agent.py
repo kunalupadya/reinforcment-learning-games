@@ -8,9 +8,6 @@ from ray.rllib.offline.json_writer import JsonWriter
 from openaigymexample import train_gym_game
 from openaigymexample import get_trainer
 import os
-from GUI import animate_game
-from openaigymexample import make_env
-from ray.rllib.models.preprocessors import get_preprocessor
 #
 # Test yourself as a learning agent! Pass environment name as a command-line argument, for example:
 #
@@ -153,29 +150,4 @@ if __name__ == "__main__":
     #environment = 'MountainCar-v0' if len(sys.argv) == 1 else sys.argv[1]
     #gameIters = []
     environment = "MountainCar-v0"
-    trained_agent, sumstats = humanTrainGame(environment)
-    env = make_env(environment)
-    state = env.reset()
-    sum_reward = 0
-    n_step = 1000
-
-    prep = get_preprocessor(env.observation_space)(env.observation_space)
-
-    rgbs = []
-    for step in range(n_step):
-        if environment == "Blackjack-v0":
-            action = trained_agent.compute_action(state)
-        elif environment == "Snake-v0":
-            action = trained_agent.compute_action(state)
-        else:
-            action = trained_agent.compute_action(prep.transform(state))
-
-        state, reward, done, info = env.step(action)
-        sum_reward += reward
-
-        env.render()
-
-        if done == 1:
-            print("cumulative reward", sum_reward)
-            state = env.reset()
-            sum_reward = 0
+    #trained_agent, sumstats = humanTrainGame(environment)
